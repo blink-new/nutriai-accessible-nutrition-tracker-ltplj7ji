@@ -1,0 +1,41 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Inter Font Variables */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+/* Custom animations */
+@keyframes scale-press {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Accessibility improvements */
+.accessible-focus {
+  outline: 2px solid #4CAF50;
+  outline-offset: 2px;
+}
+
+/* Dark mode utilities */
+.dark-mode {
+  background-color: #121212;
+  color: #FFFFFF;
+}
+
+.light-mode {
+  background-color: #FFFFFF;
+  color: #212121;
+}
