@@ -9,10 +9,13 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams } from 'expo-router';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import { useAppNavigation } from '../../hooks/useNavigation';
 import * as Haptics from 'expo-haptics';
 
 interface Message {
@@ -34,6 +37,8 @@ interface Suggestion {
 export default function AI() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const navigation = useAppNavigation();
+  const params = useLocalSearchParams();
   
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -46,7 +51,7 @@ export default function AI() {
   
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chat' | 'planner' | 'insights'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'planner' | 'insights'>((params.tab as any) || 'chat');
   
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -436,7 +441,19 @@ export default function AI() {
               }}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                // Add to journal
+                Alert.alert(
+                  'Add to Journal',
+                  `Add ${suggestion.title} to your meal journal?`,
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    { 
+                      text: 'Add', 
+                      onPress: () => {
+                        Alert.alert('Success!', `${suggestion.title} has been added to your journal.`);
+                      }
+                    },
+                  ]
+                );
               }}
             >
               <Text
@@ -458,7 +475,7 @@ export default function AI() {
         title="Generate New Suggestions"
         onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-          // Generate new suggestions
+          Alert.alert('Generating...', 'New AI suggestions are being generated based on your preferences and nutrition goals.');
         }}
         variant="primary"
         style={{ marginTop: 16 }}

@@ -7,12 +7,18 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Dimensions,
+  ActionSheetIOS,
+  Platform,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Card from '../../components/ui/Card';
 import CircularProgress from '../../components/ui/CircularProgress';
 import FloatingActionButton from '../../components/ui/FloatingActionButton';
 import Button from '../../components/ui/Button';
+import AddMealModal from '../../components/modals/AddMealModal';
+import WaterLogModal from '../../components/modals/WaterLogModal';
+import { useAppNavigation } from '../../hooks/useNavigation';
 import * as Haptics from 'expo-haptics';
 
 const { width } = Dimensions.get('window');
@@ -36,10 +42,15 @@ interface QuickAction {
 export default function Dashboard() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const navigation = useAppNavigation();
   
   const [caloriesConsumed, setCaloriesConsumed] = useState(1247);
   const [caloriesGoal] = useState(2000);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showAddMealModal, setShowAddMealModal] = useState(false);
+  const [showWaterModal, setShowWaterModal] = useState(false);
+  const [waterConsumed, setWaterConsumed] = useState(1200);
+  const [waterGoal] = useState(2000);
   
   const [todaysMeals] = useState<MealData[]>([
     { id: '1', name: 'Avocado Toast', calories: 320, time: '8:30 AM', type: 'breakfast' },
@@ -56,7 +67,7 @@ export default function Dashboard() {
       color: '#4CAF50',
       onPress: () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        // Navigate to scanner
+        navigation.navigateToScanner('barcode');
       },
     },
     {
@@ -66,7 +77,7 @@ export default function Dashboard() {
       color: '#FF8C00',
       onPress: () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        // Navigate to add meal
+        setShowAddMealModal(true);
       },
     },
     {
@@ -76,7 +87,7 @@ export default function Dashboard() {
       color: '#2196F3',
       onPress: () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        // Open water logging
+        setShowWaterModal(true);
       },
     },
     {
@@ -86,7 +97,7 @@ export default function Dashboard() {
       color: '#9C27B0',
       onPress: () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        // Navigate to AI chat
+        navigation.navigateToAI('chat');
       },
     },
   ];
@@ -130,7 +141,60 @@ export default function Dashboard() {
 
   const handleFABPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    // Show action sheet or navigate to add meal
+    
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', 'Add Meal', 'Scan Food', 'Log Water', 'Ask AI'],
+          cancelButtonIndex: 0,
+          title: 'Quick Actions',
+        },
+        (buttonIndex) => {
+          switch (buttonIndex) {
+            case 1:
+              setShowAddMealModal(true);
+              break;
+            case 2:
+              navigation.navigateToScanner();
+              break;
+            case 3:
+              setShowWaterModal(true);
+              break;
+            case 4:
+              navigation.navigateToAI('chat');
+              break;
+          }
+        }
+      );
+    } else {
+      Alert.alert(
+        'Quick Actions',
+        'Choose an action',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Add Meal', onPress: () => setShowAddMealModal(true) },
+          { text: 'Scan Food', onPress: () => navigation.navigateToScanner() },
+          { text: 'Log Water', onPress: () => setShowWaterModal(true) },
+          { text: 'Ask AI', onPress: () => navigation.navigateToAI('chat') },
+        ]
+      );
+    }
+  };
+
+  const handleAddMeal = (meal: {
+    name: string;
+    calories: number;
+    type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+    time: string;
+  }) => {
+    // Add meal to today's meals
+    setCaloriesConsumed(prev => prev + meal.calories);
+    Alert.alert('Success!', `${meal.name} has been added to your journal.`);
+  };
+
+  const handleLogWater = (amount: number) => {
+    setWaterConsumed(prev => prev + amount);
+    Alert.alert('Success!', `${amount}ml of water has been logged.`);
   };
 
   return (
@@ -488,7 +552,7 @@ export default function Dashboard() {
             
             <Button
               title="Get More Tips"
-              onPress={() => {}}
+              onPress={() => navigation.navigateToAI('insights')}
               variant="secondary"
               size="small"
               style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
@@ -499,6 +563,21 @@ export default function Dashboard() {
       </ScrollView>
 
       <FloatingActionButton onPress={handleFABPress} />
+
+      {/* Modals */}
+      <AddMealModal
+        visible={showAddMealModal}
+        onClose={() => setShowAddMealModal(false)}
+        onAddMeal={handleAddMeal}
+      />
+
+      <WaterLogModal
+        visible={showWaterModal}
+        onClose={() => setShowWaterModal(false)}
+        onLogWater={handleLogWater}
+        currentWater={waterConsumed}
+        dailyGoal={waterGoal}
+      />
     </SafeAreaView>
   );
 }

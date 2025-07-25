@@ -13,8 +13,10 @@ import { Camera, CameraView } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
+import { useLocalSearchParams } from 'expo-router';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import { useAppNavigation } from '../../hooks/useNavigation';
 
 const { width, height } = Dimensions.get('window');
 
@@ -29,9 +31,11 @@ interface ScanResult {
 export default function Scanner() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const navigation = useAppNavigation();
+  const params = useLocalSearchParams();
   
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [scanMode, setScanMode] = useState<ScanMode>('barcode');
+  const [scanMode, setScanMode] = useState<ScanMode>((params.mode as ScanMode) || 'barcode');
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [flashEnabled, setFlashEnabled] = useState(false);
@@ -163,9 +167,17 @@ export default function Scanner() {
 
   const handleAddToJournal = (data: string) => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert('Success!', `${data} has been added to your journal.`);
-    setScanResult(null);
-    setManualCode('');
+    Alert.alert(
+      'Success!', 
+      `${data} has been added to your journal.`,
+      [
+        { text: 'View Journal', onPress: () => navigation.navigateToJournal() },
+        { text: 'Continue Scanning', onPress: () => {
+          setScanResult(null);
+          setManualCode('');
+        }},
+      ]
+    );
   };
 
   const toggleFlash = () => {

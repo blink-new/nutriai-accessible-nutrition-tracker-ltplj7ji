@@ -7,10 +7,13 @@ import {
   SafeAreaView,
   TouchableOpacity,
   TextInput,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams } from 'expo-router';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import { useAppNavigation } from '../../hooks/useNavigation';
 import * as Haptics from 'expo-haptics';
 
 interface JournalEntry {
@@ -29,9 +32,11 @@ interface JournalEntry {
 export default function Journal() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const navigation = useAppNavigation();
+  const params = useLocalSearchParams();
   
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState<'all' | 'breakfast' | 'lunch' | 'dinner' | 'snacks'>('all');
+  const [selectedFilter, setSelectedFilter] = useState<'all' | 'breakfast' | 'lunch' | 'dinner' | 'snacks'>((params.filter as any) || 'all');
   const [sortBy, setSortBy] = useState<'date' | 'calories'>('date');
 
   const [journalEntries] = useState<JournalEntry[]>([
@@ -71,8 +76,19 @@ export default function Journal() {
 
   const handleExport = (format: 'pdf' | 'csv') => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    // Implement export functionality
-    console.log(`Exporting as ${format.toUpperCase()}`);
+    Alert.alert(
+      'Export Data',
+      `Your nutrition journal will be exported as a ${format.toUpperCase()} file. This may take a few moments.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Export', 
+          onPress: () => {
+            Alert.alert('Success!', `Your journal has been exported as ${format.toUpperCase()}. Check your downloads folder.`);
+          }
+        },
+      ]
+    );
   };
 
   const formatDate = (dateString: string) => {

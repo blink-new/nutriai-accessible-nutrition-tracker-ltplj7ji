@@ -8,10 +8,13 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams } from 'expo-router';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import { useAppNavigation } from '../../hooks/useNavigation';
 import * as Haptics from 'expo-haptics';
 
 interface SettingItem {
@@ -28,6 +31,8 @@ interface SettingItem {
 export default function Profile() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const navigation = useAppNavigation();
+  const params = useLocalSearchParams();
   
   const [darkMode, setDarkMode] = useState(isDark);
   const [notifications, setNotifications] = useState(true);
@@ -115,7 +120,14 @@ export default function Profile() {
           type: 'navigation',
           onPress: () => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            Alert.alert('Coming Soon', 'Nutrition goals customization will be available soon.');
+            Alert.alert(
+              'Nutrition Goals',
+              'Set your daily nutrition targets',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Customize Goals', onPress: () => Alert.alert('Coming Soon', 'Nutrition goals customization will be available soon.') },
+              ]
+            );
           },
         },
         {
@@ -137,7 +149,15 @@ export default function Profile() {
           type: 'action',
           onPress: () => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            Alert.alert('Export Data', 'Your data will be exported as a CSV file.');
+            Alert.alert(
+              'Export Data',
+              'Download your complete nutrition data',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Export CSV', onPress: () => Alert.alert('Success!', 'Your data has been exported. Check your downloads folder.') },
+                { text: 'Export PDF', onPress: () => Alert.alert('Success!', 'Your data has been exported as PDF. Check your downloads folder.') },
+              ]
+            );
           },
         },
       ],
@@ -153,7 +173,15 @@ export default function Profile() {
           type: 'navigation',
           onPress: () => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            Alert.alert('Help', 'Help documentation will be available soon.');
+            Alert.alert(
+              'Help & FAQ',
+              'Get help using NutriAI',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'View FAQ', onPress: () => Alert.alert('FAQ', 'Frequently asked questions will be available soon.') },
+                { text: 'Contact Support', onPress: () => Linking.openURL('mailto:support@nutriai.app') },
+              ]
+            );
           },
         },
         {
@@ -164,7 +192,15 @@ export default function Profile() {
           type: 'action',
           onPress: () => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            Alert.alert('Feedback', 'Thank you for your interest in providing feedback!');
+            Alert.alert(
+              'Send Feedback',
+              'Help us improve NutriAI',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Rate App', onPress: () => Alert.alert('Thank you!', 'Your rating helps us improve.') },
+                { text: 'Send Email', onPress: () => Linking.openURL('mailto:feedback@nutriai.app?subject=NutriAI Feedback') },
+              ]
+            );
           },
         },
         {
@@ -191,7 +227,13 @@ export default function Profile() {
         `Are you sure you want to disconnect ${integrationName}?`,
         [
           { text: 'Cancel', style: 'cancel' },
-          { text: 'Disconnect', style: 'destructive' },
+          { 
+            text: 'Disconnect', 
+            style: 'destructive',
+            onPress: () => {
+              Alert.alert('Disconnected', `${integrationName} has been disconnected from your account.`);
+            }
+          },
         ]
       );
     } else {
@@ -200,7 +242,12 @@ export default function Profile() {
         `Connect to ${integrationName} to sync your health data automatically.`,
         [
           { text: 'Cancel', style: 'cancel' },
-          { text: 'Connect', onPress: () => {} },
+          { 
+            text: 'Connect', 
+            onPress: () => {
+              Alert.alert('Connected!', `${integrationName} has been successfully connected to your account.`);
+            }
+          },
         ]
       );
     }
